@@ -1,6 +1,6 @@
-import random
 from itertools import *
-
+import random
+import sys
 """
 Take a bunch of random walks through G. Keep track of the number of children at
 each node. Keep track of the branching factor at each point and the depth of
@@ -8,7 +8,8 @@ each walk. Continuously output the average branching factor (across all nodes)
 and average depth across all walks. The estimate is average_branching_factor **
 average_depth.
 """
-N, M = 4, 8
+
+N, M = int(sys.argv[1]), int(sys.argv[2])
 start = (0, 0)
 
 def get_options( (x, y), visited):
