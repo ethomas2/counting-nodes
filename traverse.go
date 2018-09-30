@@ -13,17 +13,12 @@ func push(nodechan chan node, stack *[]node, n node) {
 }
 
 func pull(nodechan chan node, stack *[]node) node {
-	select {
-	case n := <-nodechan:
+	if len(*stack) > 0 {
+		n := (*stack)[len(*stack)-1]
+		*stack = (*stack)[:len(*stack)-1]
 		return n
-	default:
-		if len(*stack) > 0 {
-			n := (*stack)[len(*stack)-1]
-			*stack = (*stack)[:len(*stack)-1]
-			return n
-		}
-		return <-nodechan
 	}
+	return <-nodechan
 }
 
 func traverse(nodechan chan node, visit visitFn, getChildren func(node) []node) {

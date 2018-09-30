@@ -73,7 +73,6 @@ func solve(gNode, nRows, nCols uint64) (uint64, uint64) {
 	}
 
 	NUMGOROUTINES := runtime.NumCPU()
-	fmt.Println("NUMGOROUTINES", NUMGOROUTINES)
 	nodeschan := make(chan TNode, NUMGOROUTINES)
 	for i := 0; i < NUMGOROUTINES; i++ {
 		go traverse(nodeschan, visit, getChildren)
