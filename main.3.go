@@ -51,30 +51,34 @@ func getChildren(tnode TNode) []TNode {
 	return children
 }
 
-func solve(gNode, nRows, nCols uint64) (uint64, uint64) {
-	var nLeafNodes, nNodes, outstanding uint64
-	type tuple struct {
-		fst uint64
-		snd uint64
+func sum(arr []int) int {
+	var ret int
+	for _, x := range arr {
+		ret += x
 	}
+	return ret
+}
 
+func solve(gNode, nRows, nCols uint64) (int, int) {
+	NUMGOROUTINES := runtime.GOMAXPROCS(0)
+	nLeafNodes := make([]int, NUMGOROUTINES)
+	nNodes := make([]int, NUMGOROUTINES)
 	result := make(chan tuple, 1)
-	outstanding = 1
-	visit := func(tnode TNode, children []TNode) {
-		atomic.AddUint64(&outstanding, uint64(len(children)))
-		if len(children) == 0 {
-			atomic.AddUint64(&nLeafNodes, 1)
-		}
-		atomic.AddUint64(&nNodes, 1)
-		if newval := atomic.AddUint64(&outstanding, ^uint64(0)); newval == 0 {
-			fmt.Println("DONE !!!", nLeafNodes, nNodes)
-			result <- tuple{nNodes, nLeafNodes}
-		}
-	}
+	var outstanding uint64 = 1
 
-	NUMGOROUTINES := runtime.NumCPU()
 	nodeschan := make(chan TNode, NUMGOROUTINES)
 	for i := 0; i < NUMGOROUTINES; i++ {
+		ii := i
+		visit := func(tnode TNode, children []TNode) {
+			atomic.AddUint64(&outstanding, uint64(len(children)))
+			if len(children) == 0 {
+				nLeafNodes[ii] += 1
+			}
+			nNodes[ii] += 1
+			if newval := atomic.AddUint64(&outstanding, ^uint64(0)); newval == 0 {
+				result <- tuple{sum(nNodes), sum(nLeafNodes)}
+			}
+		}
 		go traverse(nodeschan, visit, getChildren)
 	}
 	tnode := TNode{gNode, 1 << gNode}
