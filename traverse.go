@@ -4,9 +4,13 @@ type node = TNode
 type nodeInfo = []node // right now it's just an array of children
 type visitFn = func(node, nodeInfo)
 
+var npush int
+var npull int
+
 func push(nodechan chan node, stack *[]node, n node) {
 	select {
 	case nodechan <- n:
+		npush += 1
 	default:
 		*stack = append(*stack, n)
 	}
@@ -18,6 +22,7 @@ func pull(nodechan chan node, stack *[]node) node {
 		*stack = (*stack)[:len(*stack)-1]
 		return n
 	}
+	npull += 1
 	return <-nodechan
 }
 
@@ -31,21 +36,4 @@ func traverse(nodechan chan node, visit visitFn, getChildren func(node) []node) 
 			push(nodechan, &stack, child)
 		}
 	}
-}
-
-func test() {
-	// NUMGOROUTINES := 4
-	// c := make(chan node, NUMGOROUTINES+1)
-	// visit := func(n node) {
-	// 	fmt.Println(n)
-	// 	time.Sleep(time.Second)
-	// }
-	// getChildren := func(n node) []node {
-	// 	return []node{2 * n, 2*n + 1}
-	// }
-	// for i := 0; i < NUMGOROUTINES; i++ {
-	// 	go traverseTree(c, visit, getChildren)
-	// }
-	// c <- 1
-	// time.Sleep(5 * time.Second)
 }
