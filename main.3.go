@@ -1,12 +1,17 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
+	"runtime/pprof"
 	"strconv"
 	"sync/atomic"
 )
+
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 var nRows, nCols uint64
 
@@ -27,7 +32,7 @@ func getChildren(tnode TNode) []TNode {
 		tuple{0, 1},
 		tuple{0, -1},
 	}
-	var children []TNode
+	children := make([]TNode, 0, 4)
 	for _, delta := range deltas {
 		var deltar, deltac int = delta.fst, delta.snd
 		var r, c uint64 = tnode.gNode / nCols, tnode.gNode % nCols
@@ -89,12 +94,20 @@ func solve(gNode, nRows, nCols uint64) (int, int) {
 }
 
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Println("\033[31mGimme some ints yo!\033[m")
-		os.Exit(1)
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer func() {
+			pprof.StopCPUProfile()
+			fmt.Println("stopped cpu profile")
+		}()
 	}
 
-	nRows, nCols = uint64(mustAToi(os.Args[1])), uint64(mustAToi(os.Args[2]))
+	nRows, nCols = uint64(mustAToi(flag.Arg(0))), uint64(mustAToi(flag.Arg(1)))
 	// TODO: allow custom start nodes
 	// TODO: make gNodes a type (type gNode int)
 	fmt.Println(solve(0, uint64(nRows), uint64(nCols)))

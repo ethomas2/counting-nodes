@@ -27,7 +27,7 @@ func pull(nodechan chan node, stack *[]node) node {
 }
 
 func traverse(nodechan chan node, visit visitFn, getChildren func(node) []node) {
-	var stack []node
+	stack := make([]node, 0, 50)
 	for {
 		node := pull(nodechan, &stack)
 		children := getChildren(node)
