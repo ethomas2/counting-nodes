@@ -12,6 +12,7 @@ import (
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var ngoroutines = flag.Int("goroutines", 0, "number of goroutines to use")
 
 var nRows, nCols uint64
 
@@ -65,7 +66,12 @@ func sum(arr []int) int {
 }
 
 func solve(gNode, nRows, nCols uint64) (int, int) {
-	NUMGOROUTINES := runtime.GOMAXPROCS(0)
+	var NUMGOROUTINES int
+	if *ngoroutines == 0 {
+		NUMGOROUTINES = runtime.GOMAXPROCS(0)
+	} else {
+		NUMGOROUTINES = *ngoroutines
+	}
 	nLeafNodes := make([]int, NUMGOROUTINES)
 	nNodes := make([]int, NUMGOROUTINES)
 	result := make(chan tuple, 1)
