@@ -4,13 +4,9 @@ type node = TNode
 type nodeInfo = []node // right now it's just an array of children
 type visitFn = func(node, nodeInfo)
 
-var npush int
-var npull int
-
 func push(nodechan chan node, stack *[]node, n node) {
 	select {
 	case nodechan <- n:
-		npush += 1
 	default:
 		*stack = append(*stack, n)
 	}
@@ -22,7 +18,6 @@ func pull(nodechan chan node, stack *[]node) node {
 		*stack = (*stack)[:len(*stack)-1]
 		return n
 	}
-	npull += 1
 	return <-nodechan
 }
 

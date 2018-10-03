@@ -57,12 +57,17 @@ func getChildren(tnode TNode) []TNode {
 	return children
 }
 
-func sum(arr []int) int {
+func sum(arr []paddedInt) int {
 	var ret int
 	for _, x := range arr {
-		ret += x
+		ret += x.n
 	}
 	return ret
+}
+
+type paddedInt struct {
+	n       int
+	padding [64]byte
 }
 
 func solve(gNode, nRows, nCols uint64) (int, int) {
@@ -72,8 +77,8 @@ func solve(gNode, nRows, nCols uint64) (int, int) {
 	} else {
 		NUMGOROUTINES = *ngoroutines
 	}
-	nLeafNodes := make([]int, NUMGOROUTINES)
-	nNodes := make([]int, NUMGOROUTINES)
+	nLeafNodes := make([]paddedInt, NUMGOROUTINES)
+	nNodes := make([]paddedInt, NUMGOROUTINES)
 	result := make(chan tuple, 1)
 	var outstanding uint64 = 1
 
@@ -83,9 +88,9 @@ func solve(gNode, nRows, nCols uint64) (int, int) {
 		visit := func(tnode TNode, children []TNode) {
 			atomic.AddUint64(&outstanding, uint64(len(children)))
 			if len(children) == 0 {
-				nLeafNodes[ii] += 1
+				nLeafNodes[ii].n += 1
 			}
-			nNodes[ii] += 1
+			nNodes[ii].n += 1
 			if newval := atomic.AddUint64(&outstanding, ^uint64(0)); newval == 0 {
 				result <- tuple{sum(nNodes), sum(nLeafNodes)}
 			}
