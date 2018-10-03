@@ -33,7 +33,7 @@ func main() {
 	} else if flag.Arg(0) == "2" {
 		main2()
 	} else {
-		fmt.Println("\033[31;mBad input\033[m")
+		fmt.Println("\033[31mBad input\033[m")
 		os.Exit(1)
 	}
 }
@@ -55,24 +55,29 @@ func main2() {
 		n = uint64(*ngoroutines)
 	}
 	fmt.Println("GOMAXPROCS", n)
-	sums := make([]uint64, n)
+	partialSums := make(chan uint64)
 	wg := sync.WaitGroup{}
 	var i uint64
 	for i = 0; i < n; i++ {
 		wg.Add(1)
 		go func(i uint64) {
+			var s uint64
 			var start uint64 = (LIMIT / n) * i
 			var end = start + (LIMIT / n)
 			for j := start; j < end; j += 1 {
-				sums[i] += j
+				s += j
 			}
+			partialSums <- s
 			wg.Done()
 		}(uint64(i))
 	}
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(partialSums)
+	}()
 
 	var total uint64
-	for _, s := range sums {
+	for s := range partialSums {
 		total += s
 	}
 	fmt.Println(total)
